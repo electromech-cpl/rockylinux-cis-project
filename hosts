@@ -1,9 +1,9 @@
 [rockylinux_ec2]
-52.66.185.90 ansible_user=rocky
+your_remote_ip ansible_user=rocky
 
 [rockylinux_ec2:vars]
 ansible_user=rocky
-ansible_ssh_private_key_file=/Users/ishanupadhyay/Downloads/rockylinux.pem
+ansible_ssh_private_key_file=/your/private/key/path
 
 [all:vars]
 rockylinux9cis_config_aide=true
