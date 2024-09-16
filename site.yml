@@ -1,0 +1,115 @@
+---
+- name: Apply RockyLinux9 CIS hardening
+  hosts: all
+  become: yes
+  become_method: sudo
+  become_user: root
+  vars:
+    ansible_become_password: "rockylinux"
+
+  vars_files:
+    - vars.yml  # Load variables from this file
+    - vars/main.yml
+
+  tasks:
+
+    - include_tasks: tasks/section_5/cis_5.6.x.yml
+
+    - name: Debug rockylinux9cis_config_aide
+      ansible.builtin.debug:
+        msg: "rockylinux9cis_config_aide is set to {{ rockylinux9cis_config_aide }}"
+
+    - name: Debug rockylinux9cis_rule_1_3_1
+      ansible.builtin.debug:
+        msg: "rockylinux9cis_rule_1_3_1 is set to {{ rockylinux9cis_rule_1_3_1 }}"
+
+    - name: Debug rockylinux9cis_rule_1_3_2
+      ansible.builtin.debug:
+        msg: "rockylinux9cis_rule_1_3_2 is set to {{ rockylinux9cis_rule_1_3_2 }}"
+
+    - name: Debug rockylinux9cis_rule_1_3_3
+      ansible.builtin.debug:
+        msg: "rockylinux9cis_rule_1_3_3 is set to {{ rockylinux9cis_rule_1_3_3 }}"
+
+    - name: Ensure SELinux is enforcing
+      command: getenforce
+      register: selinux_status
+
+    - name: Set SELinux to enforcing if not already
+      command: setenforce 1
+      when: selinux_status.stdout != "Enforcing"
+      notify: Restart auditd
+
+    - name: Install a kernel update
+      ansible.builtin.yum:
+        name: kernel
+        state: latest
+      notify: Restart auditd
+
+    - name: Ensure defaults are loaded
+      ansible.builtin.include_vars:
+        file: defaults/main.yml
+
+    - name: Debug rockylinux9cis_rule_1_1_2_1
+      ansible.builtin.debug:
+        msg: "Variable rockylinux9cis_rule_1_1_2_1 is set to {{ rockylinux9cis_rule_1_1_2_1 }}"
+
+    - name: Debug rocky_linux9cis_warning_banner
+      ansible.builtin.debug:
+        msg: "rocky_linux9cis_warning_banner is set to {{ rocky_linux9cis_warning_banner }}"
+
+    - name: Debug before notifying Restart auditd
+      ansible.builtin.debug:
+        msg: "Task to notify Restart auditd is running"
+
+    - name: "Ensure auditd configuration"
+      ansible.builtin.shell: "auditctl -l"
+      notify: Restart auditd
+
+    - name: Include variables
+      ansible.builtin.include_vars:
+        file: vars.yml
+
+    - name: "Get list of interactive users"
+      ansible.builtin.shell: "awk -F: '($7 != \"/sbin/nologin\" && $7 != \"/bin/false\") {print $1}' /etc/passwd"
+      changed_when: false
+      register: discovered_interactive_usernames
+
+    - name: Debug rockylinux9cis_rule_5_6_2
+      ansible.builtin.debug:
+        var: rockylinux9cis_rule_5_6_2
+
+    - name: Ensure sudo works
+      command: whoami
+
+    - name: Debug rockylinux9cis_rule_5_6_3
+      ansible.builtin.debug:
+        msg: "Variable rockylinux9cis_rule_5_6_3 is set to {{ rockylinux9cis_rule_5_6_3 }}"
+
+    - import_tasks: tasks/section_1/main.yml
+    - import_tasks: tasks/section_2/main.yml
+    - import_tasks: tasks/section_3/main.yml
+    - import_tasks: tasks/section_4/main.yml
+    - import_tasks: tasks/section_5/main.yml
+    - import_tasks: tasks/section_6/main.yml
+
+    - name: Debug empty_password_accounts
+      ansible.builtin.debug:
+        msg: "{{ empty_password_accounts }}"  # This should be after the task that registers it
+
+  handlers:
+    - name: Change_requires_reboot
+      ansible.builtin.command: /sbin/reboot
+      become: yes
+      ignore_errors: true
+
+    - name: Restart auditd
+      ansible.builtin.shell: service auditd restart
+      tags:
+        - skip_ansible_lint
+
+    - name: Some task that requires restarting rsyslog
+      ansible.builtin.shell: "systemctl restart rsyslog"
+      notify: Restart rsyslog
+
+    - import_tasks: handlers/main.yml

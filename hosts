@@ -1,0 +1,12 @@
+[rockylinux_ec2]
+52.66.185.90 ansible_user=rocky
+
+[rockylinux_ec2:vars]
+ansible_user=rocky
+ansible_ssh_private_key_file=/Users/ishanupadhyay/Downloads/rockylinux.pem
+
+[all:vars]
+rockylinux9cis_config_aide=true
+rockylinux9cis_rule_1_3_1=true
+rockylinux9cis_rule_1_3_2=true
+rockylinux9cis_rule_1_3_3=true

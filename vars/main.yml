@@ -1,0 +1,34 @@
+---
+# vars file for rockylinux
+
+min_ansible_version: 2.10.1
+rockylinux9cis_allowed_crypto_policies:
+    - 'DEFAULT'
+    - 'FUTURE'
+    - 'FIPS'
+
+rockylinux9cis_allowed_crypto_policies_modules:
+    - 'OSPP'
+    - 'AD-SUPPORT'
+    - 'AD-SUPPORT-LEGACY'
+
+# Used to control warning summary
+warn_control_list: ""
+warn_count: 0
+
+gpg_key_package: "{{ ansible_facts.distribution | lower }}-gpg-keys"
+
+rockylinux9cis_config_aide: true
+rockylinux9cis_rule_1_3_1: true
+rockylinux9cis_rule_1_3_2: true
+rockylinux9cis_rule_1_3_3: true
+rockylinux9cis_rule_5_6_2: true
+rockylinux9cis_rule_5_6_3: true
+rockylinux9cis_rule_5_6_4: true
+rockylinux9cis_rule_5_6_5: true
+rockylinux9cis_rule_5_6_6: true
+rockylinux9cis_rule_6_2_9: true
+
+discovered_interactive_users_home:
+  stdout_lines: []
+

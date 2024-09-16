@@ -1,0 +1,52 @@
+vars:
+ rockylinux9cis_config_aide: true
+ rockylinux9cis_rule_1_3_1: true
+ rockylinux9cis_rule_1_3_2: true
+ rockylinux9cis_rule_1_3_3: true
+ rockylinux9cis_rule_4_1_4_6: true
+ rockylinux9cis_rule_4_1_4_7: true
+ rockylinux9cis_rule_5_6_2: true
+ rockylinux9cis_rule_5_6_3: true
+ rockylinux9cis_rulr_5_6_4: true
+ rockylinux9cis_rule_5_6_5: true
+ rockylinux9cis_rule_5_6_6: true
+ rockylinux9cis_rule_6_2_9: true
+ rockylinux9cis_rule_6_2_10: true  # or false, depending on your needs
+
+ # Add other necessary variables here
+
+# vars.yml
+rocky_linux9cis_warning_banner: "Your banner text here"
+
+auditd_conf_files:
+  files:
+    - path: /etc/audit/auditd.conf
+    - path: /etc/audit/rules.d/audit.rules
+
+rockylinux9cis_sudoers_files:
+  stdout_lines:
+    - '/etc/sudoers'
+rockylinux9cis_sudo_timestamp_timeout: 15
+
+rockylinux9cis_passwd:
+  - id: bin
+    uid: 1
+    shell: /bin/bash
+  - id: daemon
+    uid: 2
+    shell: /usr/sbin/nologin
+  - id: adm
+    uid: 3
+    shell: /bin/bash
+  # Add more system accounts as needed
+
+min_int_uid: 1000
+
+rockylinux9cis_shell_session_timeout:
+  timeout: 900
+  file: "/etc/profile"
+
+rockylinux9cis_uid_zero_accounts_except_root:
+  stdout_lines: []
+  rc: 0
+
