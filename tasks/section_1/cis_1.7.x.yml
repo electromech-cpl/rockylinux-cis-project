@@ -1,8 +1,12 @@
 ---
 
+- name: Debug variable
+  debug:
+    var: rocky_linux9cis_warning_banner
+
 - name: "1.7.1 | PATCH | Ensure message of the day is configured properly"
   ansible.builtin.template:
-      src: etc/motd.j2
+      src: etc/motd.j2  # Path relative to the templates directory
       dest: /etc/motd
       owner: root
       group: root

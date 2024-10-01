@@ -143,7 +143,7 @@
       - rockylinux9cis_rule_4_2_2_5
   tags:
       - level1-server
-      - level2-workstation
+      - level1-workstation
       - manual
       - patch
       - journald

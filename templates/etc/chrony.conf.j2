@@ -19,8 +19,9 @@
 # fails they will be discarded.  Thus under some circumstances it is
 # better to use IP numbers than host names.
 
-{% for server in rockylinux9cis_time_synchronization_servers -%}
-server {{ server }} {{ rockylinux9cis_chrony_server_options }}
+{% set servers = rockylinux9cis_time_synchronization_servers | default(['0.pool.ntp.org', '1.pool.ntp.org', '2.pool.ntp.org']) %}
+{% for server in servers -%}
+server {{ server }} {{ rockylinux9cis_chrony_server_options | default('iburst') }}
 {% endfor %}
 
 # Look here for the admin password needed for chronyc.  The initial
@@ -34,14 +35,14 @@ driftfile /var/lib/chrony/drift
 
 # Allow the system clock to be stepped in the first three updates
 # if its offset is larger than 1 second.
-makestep {{ rockylinux9cis_chrony_server_makestep }}
+makestep {{ rockylinux9cis_chrony_server_makestep | default(1.0) }}
 
 # Enable kernel synchronization of the real-time clock (RTC).
-{% if not rockylinux9cis_chrony_server_rtcsync %}#{% endif %}rtcsync
+{% if not rockylinux9cis_chrony_server_rtcsync | default(true) %}#{% endif %}rtcsync
 
 # Increase the minimum number of selectable sources required to adjust
 # the system clock.
-minsources {{ rockylinux9cis_chrony_server_minsources }}
+minsources {{ rockylinux9cis_chrony_server_minsources | default(2) }}
 
 # Comment this line out to turn off logging.
 

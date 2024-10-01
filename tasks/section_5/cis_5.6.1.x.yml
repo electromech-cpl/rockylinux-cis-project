@@ -1,5 +1,4 @@
 ---
-
 - name: "5.6.1.x | Ensure correct password settings for interactive users"
   block:
     - name: "Get list of interactive users"
@@ -56,7 +55,7 @@
       - name: "5.6.1.2 | PATCH | Ensure minimum days between password changes is configured | Set existing users PASS_MIN_DAYS"
         ansible.builtin.user:
             name: "{{ item }}"
-            password_expire_max: "{{ rockylinux9cis_pass['min_days'] }}"
+            password_expire_min: "{{ rockylinux9cis_pass['min_days'] }}"
         loop: "{{ discovered_min_days.stdout_lines }}"
         when:
             - discovered_min_days.stdout_lines | length > 0
@@ -104,26 +103,28 @@
 - name: "5.6.1.4 | PATCH | Ensure inactive password lock is 30 days or less"
   block:
       - name: "5.6.1.4 | AUDIT | Ensure inactive password lock is 30 days or less | Check current settings"
-        ansible.builtin.shell: useradd -D | grep INACTIVE={{ rockylinux9cis_inactivelock.lock_days }} | cut -f2 -d=
+        ansible.builtin.shell: "useradd -D | grep INACTIVE={{ rockylinux9cis_inactivelock }} | cut -f2 -d="
         changed_when: false
         failed_when: false
         check_mode: false
         register: rockylinux9cis_5_6_1_4_inactive_settings
 
       - name: "5.6.1.4 | PATCH | Ensure inactive password lock is 30 days or less | Set default inactive setting"
-        ansible.builtin.shell: useradd -D -f {{ rockylinux9cis_inactivelock.lock_days }}
-        when: rockylinux9cis_5_6_1_4_inactive_settings.stdout | length == 0
+        ansible.builtin.shell: "useradd -D -f {{ rockylinux9cis_inactivelock }}"
+        when: "{{ rockylinux9cis_5_6_1_4_inactive_settings.stdout | length == 0 }}"
 
       - name: "5.6.1.4 | AUDIT | Ensure inactive password lock is 30 days or less | Getting user list"
-        ansible.builtin.shell: "awk -F: '/^[^#:]+:[^\\!\\*:]*:[^:]*:[^:]*:[^:]*:[^:]*:(\\s*|-1|3[1-9]|[4-9][0-9]|[1-9][0-9][0-9]+):[^:]*:[^:]*\\s*$/ {print $1}' /etc/shadow"
+        ansible.builtin.shell: |
+          awk -F: '/^[^#:]+:[^\\!*:]*:[^:]*:[^:]*:[^:]*:[^:]*:(\\s*|-1|3[1-9]|[4-9][0-9]|[1-9][0-9][0-9]+):[^:]*:[^:]*\\s*$/ {print $1}' /etc/shadow
         changed_when: false
         check_mode: false
         register: rockylinux9cis_5_6_1_4_user_list
 
       - name: "5.6.1.4 | PATCH | Ensure inactive password lock is 30 days or less | Apply Inactive setting to existing accounts"
-        ansible.builtin.shell: chage --inactive {{ rockylinux9cis_inactivelock.lock_days }} "{{ item }}"
+        ansible.builtin.shell: "chage --inactive {{ rockylinux9cis_inactivelock }} {{ item }}"
         loop: "{{ rockylinux9cis_5_6_1_4_user_list.stdout_lines }}"
-        when: item in discovered_interactive_usernames.stdout
+        when: "{{ item in discovered_interactive_usernames.stdout }}"
+
   when:
       - rockylinux9cis_rule_5_6_1_4
   tags:
@@ -136,45 +137,23 @@
 - name: "5.6.1.5 | PATCH | Ensure all users last password change date is in the past"
   block:
       - name: "5.6.1.5 | AUDIT | Ensure all users last password change date is in the past | Get current date in Unix Time"
-        ansible.builtin.shell: echo $(($(date --utc --date "$1" +%s)/86400))
+        ansible.builtin.shell: "echo $(($(date --utc --date \"$1\" +%s)/86400))"
         changed_when: false
         failed_when: false
         check_mode: false
         register: rockylinux9cis_5_6_1_5_currentut
 
-      - name: "5.6.1.5 | AUDIT | Ensure all users last password change date is in the past | Get list of users with last changed pw date in the future"
-        ansible.builtin.shell: "cat /etc/shadow | awk -F: '{if($3>{{ rockylinux9cis_5_6_1_5_currentut.stdout }})print$1}'"
+      - name: "5.6.1.5 | AUDIT | Ensure all users last password change date is in the past | Get user list"
+        ansible.builtin.shell: "awk -F: '/^[^#:]+:[^\\!*]/ && $3== {{ rockylinux9cis_5_6_1_5_currentut.stdout }} {print $1}' /etc/shadow"
         changed_when: false
-        failed_when: false
         check_mode: false
-        register: rockylinux9cis_5_6_1_5_user_list
+        register: rockylinux9cis_5_6_1_5_existing_users
 
-      - name: "5.6.1.5 | AUDIT | Ensure all users last password change date is in the past | Alert on accounts with pw change in the future"
-        ansible.builtin.debug:
-            msg: "Warning!! The following accounts have the last PW change date in the future: {{ rockylinux9cis_5_6_1_5_user_list.stdout_lines }}"
-        when:
-            - rockylinux9cis_5_6_1_5_user_list.stdout | length > 0
-            - not rockylinux9cis_futurepwchgdate_autofix
-
-      - name: "5.6.1.5 | AUDIT | Ensure all users last password change date is in the past | warning count"
-        ansible.builtin.import_tasks:
-            file: warning_facts.yml
-        when:
-            - rockylinux9cis_5_6_1_5_user_list.stdout | length > 0
-            - not rockylinux9cis_futurepwchgdate_autofix
-
-      - name: "5.6.1.5 | PATCH | Ensure all users last password change date is in the past | Fix accounts with pw change in the future"
-        ansible.builtin.shell: passwd --expire {{ item }}
-        when:
-            - rockylinux9cis_5_6_1_5_user_list.stdout | length > 0
-            - rockylinux9cis_futurepwchgdate_autofix
-        loop: "{{ rockylinux9cis_5_6_1_5_user_list.stdout_lines }}"
-  vars:
-      warn_control_id: '5.6.1.5'
   when:
       - rockylinux9cis_rule_5_6_1_5
   tags:
       - level1-server
       - level1-workstation
       - patch
+      - password
       - rule_5.6.1.5

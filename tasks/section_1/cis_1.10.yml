@@ -1,5 +1,3 @@
----
-
 - name: "1.10 | PATCH | Ensure system-wide crypto policy is not legacy"
   block:
     - name: "1.10 | PATCH | Gather current system-wide crypto policy"
@@ -9,7 +7,8 @@
 
     - name: "1.10 | PATCH | Ensure system-wide crypto policy is not legacy | set_fact"
       ansible.builtin.set_fact:
-        rockylinux9cis_full_crypto_policy: "{{ rockylinux9cis_crypto_policy }}{% if rockylinux9cis_crypto_policy_module | length > 0 %}:{{ rockylinux9cis_crypto_policy_module }}{% endif %}"
+        rockylinux9cis_full_crypto_policy: >
+          {{ rockylinux9cis_crypto_policy }}{% if rockylinux9cis_crypto_policy_module is defined and rockylinux9cis_crypto_policy_module is not none and rockylinux9cis_crypto_policy_module | length > 0 %}:{{ rockylinux9cis_crypto_policy_module }}{% endif %}
 
     - name: "1.10 | PATCH | Ensure system-wide crypto policy is not legacy"
       ansible.builtin.shell: |

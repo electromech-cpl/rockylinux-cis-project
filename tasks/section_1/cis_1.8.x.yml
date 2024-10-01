@@ -1,12 +1,25 @@
 ---
 
+- name: "Ensure dconf is installed"
+  ansible.builtin.package:
+    name: dconf
+    state: present
+
+- name: "Ensure dconf db directory exists"
+  ansible.builtin.file:
+    path: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
 - name: "1.8.1 | PATCH | Ensure GNOME Display Manager is removed"
   ansible.builtin.package:
       name: gdm
       state: absent
   when:
       - rockylinux9cis_rule_1_8_1
-      - "'gdm' in ansible_facts.packages"
+#      - "'gdm' in ansible_facts.packages"
       - not rockylinux9cis_gui
   tags:
       - level2-server
@@ -17,6 +30,14 @@
 
 - name: "1.8.2 | PATCH | Ensure GDM login banner is configured"
   block:
+      - name: "1.8.2 | PATCH | Ensure GDM login banner is configured | Create directory"
+        ansible.builtin.file:
+            path: /etc/dconf/gdm.d
+            state: directory
+            owner: root
+            group: root
+            mode: '0755'
+
       - name: "1.8.2 | PATCH | Ensure GDM login banner is configured | gdm profile"
         ansible.builtin.lineinfile:
             path: /etc/dconf/profile/gdm
@@ -34,8 +55,8 @@
 
       - name: "1.8.2 | PATCH | Ensure GDM login banner is configured | gdm profile"
         ansible.builtin.template:
-            src: etc/dconf/db/gdm.d/01-banner-message.j2
-            dest: /etc/dconf/db/gdm.d/01-banner-message
+            src: etc/dconf/gdm.d/01-banner-message.j2
+            dest: /etc/dconf/gdm.d/01-banner-message
             owner: root
             group: root
             mode: '0644'
@@ -102,7 +123,7 @@
 
       - name: "1.8.4 | PATCH | Ensure GDM screen locks when the user is idle | Make conf file"
         ansible.builtin.template:
-            src: etc/dconf/db/00-screensaver.j2
+            src: templates/etc/dconf/00-screensaver.j2
             dest: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d/00-screensaver"
             owner: root
             group: root
@@ -130,7 +151,7 @@
 
       - name: "1.8.5 | PATCH | Ensure GDM screen locks cannot be overridden | Make lock file"
         ansible.builtin.template:
-            src: etc/dconf/db/00-screensaver_lock.j2
+            src: etc/dconf/00-screensaver_lock.j2
             dest: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d/locks/00-screensaver"
             owner: root
             group: root
@@ -148,7 +169,7 @@
 
 - name: "1.8.6 | PATCH | Ensure GDM automatic mounting of removable media is disabled"
   ansible.builtin.template:
-      src: etc/dconf/db/00-media-automount.j2
+      src: etc/dconf/00-media-automount.j2
       dest: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d/00-media-automount"
       owner: root
       group: root
@@ -176,7 +197,7 @@
 
       - name: "1.8.7 | PATCH | Ensure GDM disabling automatic mounting of removable media is not overridden | Make lock file"
         ansible.builtin.template:
-            src: etc/dconf/db/00-automount_lock.j2
+            src: etc/dconf/00-automount_lock.j2
             dest: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d/locks/00-automount_lock"
             owner: root
             group: root
@@ -192,6 +213,15 @@
       - gui
       - rule_1.8.7
 
+- name: "Reload dconf"
+  ansible.builtin.command: dconf update
+  when: rockylinux9cis_gui
+  tags:
+      - level1-server
+      - level1-workstation
+      - patch
+      - gdm
+
 - name: "1.8.8 | PATCH | Ensure GDM autorun-never is enabled"
   block:
       - name: "1.8.8 | PATCH | Ensure GDM autorun-never is enabled | Make directory"
@@ -204,7 +234,7 @@
 
       - name: "1.8.8 | PATCH | Ensure GDM autorun-never is enabled | Make conf file"
         ansible.builtin.template:
-            src: etc/dconf/db/00-media-autorun.j2
+            src: etc/dconf/00-media-autorun.j2
             dest: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d/00-media-autorun"
             owner: root
             group: root
@@ -232,7 +262,7 @@
 
       - name: "1.8.9 | PATCH | Ensure GDM autorun-never is not overridden | Make lockfile"
         ansible.builtin.template:
-            src: etc/dconf/db/00-autorun_lock.j2
+            src: etc/dconf/00-autorun_lock.j2
             dest: "/etc/dconf/db/{{ rockylinux9cis_dconf_db_name }}.d/locks/00-autorun_lock"
             owner: root
             group: root

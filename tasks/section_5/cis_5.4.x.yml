@@ -47,11 +47,19 @@
                 - "Below are the current custom profiles"
                 - "{{ rockylinux9cis_5_4_2_profiles_faillock.stdout_lines }}"
 
+      - name: Debug output from authselect
+        ansible.builtin.shell: "authselect current"
+        register: authselect_output
+
+      - name: Show authselect output
+        ansible.builtin.debug:
+          var: authselect_output.stdout_lines
+
       - name: "5.4.2 | PATCH | Ensure authselect includes with-faillock | Authselect add options"
         ansible.builtin.shell: "authselect select custom/{{ rockylinux9cis_authselect['custom_profile_name'] }} {{ rockylinux9cis_authselect['options'] }} --force"
         when: rockylinux9cis_authselect_custom_profile_select
 
-      - name: 5.4.2 | PATCH | Ensure authselect includes with-faillock | not Authselect profile"
+      - name: "5.4.2 | PATCH | Ensure authselect includes with-faillock | not Authselect profile"
         ansible.builtin.lineinfile:
             path: "/etc/pam.d/password-auth"
             regexp: "{{ item.regexp }}"
@@ -65,7 +73,7 @@
             - rockylinux9cis_add_faillock_without_authselect
             - rockylinux9cis_5_4_2_risks == 'ACCEPT'
 
-      - name: 5.4.2 | PATCH | Ensure authselect includes with-faillock | not Authselect profile"
+      - name: "5.4.2 | PATCH | Ensure authselect includes with-faillock | not Authselect profile"
         ansible.builtin.lineinfile:
             path: "/etc/pam.d/system-auth"
             regexp: "{{ item.regexp }}"

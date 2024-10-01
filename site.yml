@@ -5,10 +5,9 @@
   become_method: sudo
   become_user: root
   vars:
-    ansible_become_password: "rockylinux"
+    ansible_become_password: "China@123456789"
 
   vars_files:
-    - vars.yml  # Load variables from this file
     - vars/main.yml
 
   tasks:
@@ -34,6 +33,14 @@
     - name: Ensure SELinux is enforcing
       command: getenforce
       register: selinux_status
+
+    - name: Save results to JSON file
+      copy:
+        content: |
+          {
+            "selinux_status": "{{ selinux_status.stdout }}"
+          }
+        dest: /tmp/results.json
 
     - name: Set SELinux to enforcing if not already
       command: setenforce 1
@@ -68,7 +75,7 @@
 
     - name: Include variables
       ansible.builtin.include_vars:
-        file: vars.yml
+        file: vars/main.yml
 
     - name: "Get list of interactive users"
       ansible.builtin.shell: "awk -F: '($7 != \"/sbin/nologin\" && $7 != \"/bin/false\") {print $1}' /etc/passwd"

@@ -1,0 +1,241 @@
+---
+- name: "Run Level 1 Tasks"
+  hosts: all
+  gather_facts: yes  # Ensure facts like installed packages are collected
+  become: yes
+  become_method: sudo
+  become_user: root
+  vars:
+    ansible_become_password: "China@123456789"
+
+  vars_files:
+    - vars/main.yml
+
+  tasks:
+    - name: Include variables
+      ansible.builtin.include_vars:
+        file: vars/main.yml
+
+    - name: Debug rocky_linux9cis_warning_banner
+      ansible.builtin.debug:
+        msg: "rocky_linux9cis_warning_banner is set to {{ rocky_linux9cis_warning_banner }}"
+
+    - name: Template file
+      template:
+        src: templates/etc/issue.j2
+        dest: /etc/issue
+
+    - name: Check if firewalld is installed
+      ansible.builtin.command: rpm -q firewalld
+      register: firewalld_installed
+      ignore_errors: yes
+
+    - name: Install firewalld
+      ansible.builtin.yum:
+        name: firewalld
+        state: present
+      when: firewalld_installed.rc != 0
+
+    - name: Unmask firewalld service
+      ansible.builtin.systemd:
+        name: firewalld
+        masked: false
+
+    - name: Enable and start firewalld service
+      ansible.builtin.systemd:
+        name: firewalld
+        enabled: true
+        state: started
+    
+    # Section 1 - Include all files
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.3.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.4.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.5.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.6.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.7.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.8.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.1.9.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.3.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.4.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.5.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.6.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.7.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.8.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.9.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 1 tasks for Level 1
+      include_tasks: tasks/section_1/cis_1.10.yml
+      tags: level1-server, level1-workstation
+
+    # Section 2 - Include all files
+    - name: Include Section 2 tasks for Level 1
+      include_tasks: tasks/section_2/cis_2.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 2 tasks for Level 1
+      include_tasks: tasks/section_2/cis_2.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 2 tasks for Level 1
+      include_tasks: tasks/section_2/cis_2.3.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 2 tasks for Level 1
+      include_tasks: tasks/section_2/cis_2.4.yml
+      tags: level1-server, level1-workstation
+
+    # Section 3 - Include all files
+    - name: Include Section 3 tasks for Level 1
+      include_tasks: tasks/section_3/cis_3.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 3 tasks for Level 1
+      include_tasks: tasks/section_3/cis_3.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 3 tasks for Level 1
+      include_tasks: tasks/section_3/cis_3.3.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 3 tasks for Level 1
+      include_tasks: tasks/section_3/cis_3.4.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 3 tasks for Level 1
+      include_tasks: tasks/section_3/cis_3.4.2.x.yml
+      tags: level1-server, level1-workstation
+
+    # Section 4 - Include all files
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.1.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.1.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.1.3.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.1.4.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.2.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.2.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.2.3.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 4 tasks for Level 1
+      include_tasks: tasks/section_4/cis_4.3.yml
+      tags: level1-server, level1-workstation
+
+    # Section 5 - Include all files
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.2.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.3.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.4.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.5.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.5.x_authselect.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.6.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 5 tasks for Level 1
+      include_tasks: tasks/section_5/cis_5.6.1.x.yml
+      tags: level1-server, level1-workstation
+
+    # Section 6 - Include all files
+    - name: Include Section 6 tasks for Level 1
+      include_tasks: tasks/section_6/cis_6.1.x.yml
+      tags: level1-server, level1-workstation
+
+    - name: Include Section 6 tasks for Level 1
+      include_tasks: tasks/section_6/cis_6.2.x.yml
+      tags: level1-server, level1-workstation
+
+  handlers:
+    - include: handlers/main.yml
+
+  tags:
+    - level1-server
+    - level1-workstation

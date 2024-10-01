@@ -36,29 +36,34 @@
       path: /tmp
       state: remounted
 
-- name: Restart firewalld
-  ansible.builtin.systemd:
-      name: firewalld
-      state: restarted
+- name: Delay after restart
+  ansible.builtin.pause:
+    seconds: 5
 
 - name: Restart sshd
   ansible.builtin.systemd:
-      name: sshd
-      state: restarted
+    name: sshd
+    state: restarted
 
-- name: Restart postfix
+- name: Restart critical services
   ansible.builtin.systemd:
-      name: postfix
-      state: restarted
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - firewalld
+    - postfix
 
 - name: Reload dconf
   ansible.builtin.shell: dconf update
 
 - name: Grub2cfg
   ansible.builtin.shell: "grub2-mkconfig -o /boot/grub2/grub.cfg"
-  ignore_errors: true  # noqa ignore-errors
-  tags:
-      - skip_ansible_lint
+  register: grub_result
+  ignore_errors: false  # Handle errors properly
+- name: Reboot if Grub changed
+  ansible.builtin.command: /sbin/reboot
+  become: yes
+  when: grub_result.rc == 0 and not system_is_container
 
 - name: Restart rsyslog
   ansible.builtin.systemd:
@@ -101,14 +106,16 @@
       - auditd_immutable_check.stdout == '1'
 
 - name: Restart auditd
-  ansible.builtin.shell: service auditd restart
+  ansible.builtin.service:
+    name: auditd
+    state: restarted
   tags:
-      - skip_ansible_lint
+    - skip_ansible_lint
 
 - name: Change_requires_reboot
   ansible.builtin.command: /sbin/reboot
   become: yes
-  when: ansible_facts['os_family'] == 'RedHat' or ansible_facts['os_family'] == 'Debian'
+  when: auditd_immutable_check is defined and auditd_immutable_check.stdout == '1' and ansible_facts['os_family'] == 'RedHat'
   ignore_errors: true
 
 - name: Systemd daemon reload

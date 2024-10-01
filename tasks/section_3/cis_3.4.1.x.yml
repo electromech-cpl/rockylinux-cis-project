@@ -1,59 +1,104 @@
 ---
-
 - name: "3.4.1.1 | PATCH | Ensure nftables is installed"
   ansible.builtin.package:
-      name:
-          - nftables
-      state: present
+    name: nftables
+    state: present
   when:
-      - rockylinux9cis_rule_3_4_1_1
-      - rockylinux9cis_firewall == 'nftables'
+    - rockylinux9cis_rule_3_4_1_1
+    - rockylinux9cis_firewall == 'nftables'
   tags:
-      - level1-server
-      - level1-workstation
-      - patch
-      - nftables
-      - rule_3.4.1.1
+    - level1-server
+    - level1-workstation
+    - patch
+    - nftables
+    - rule_3.4.1.1
+
+- name: "Check if firewalld is installed"
+  ansible.builtin.shell: "rpm -q firewalld"
+  register: firewalld_installed
+  ignore_errors: yes
+
+- name: "Debug firewall installation status"
+  debug:
+    var: firewalld_installed.rc
+
+- name: "Install firewalld if not present"
+  ansible.builtin.yum:
+    name: firewalld
+    state: present
+  when: firewalld_installed.rc != 0
+
+- name: "Check if firewalld is available"
+  command: yum list available firewalld
+  register: firewalld_check
+  ignore_errors: true
+
+- debug:
+    var: firewalld_check.stdout
 
 - name: "3.4.1.2 | PATCH | Ensure a single firewall configuration utility is in use"
   block:
-      - name: "3.4.1.2 | PATCH | Ensure a single firewall configuration utility is in use | nftables"
-        ansible.builtin.systemd:
-            name: "{{ item }}"
-            masked: true
-        loop:
-            - firewalld
-        when:
-            - item in ansible_facts.packages
-            - rockylinux9cis_firewall == 'nftables'
 
-      - name: "3.4.1.2 | PATCH | Ensure a single firewall configuration utility is in use | firewalld"
-        ansible.builtin.systemd:
-            name: "{{ item }}"
-            masked: true
-        loop:
-            - nftables
-        when:
-            - item in ansible_facts.packages
-            - rockylinux9cis_firewall == 'firewalld'
+    # Unmask nftables before enabling it
+    - name: "Unmask nftables service"
+      ansible.builtin.systemd:
+        name: nftables
+        masked: no
+      when: rockylinux9cis_firewall == 'nftables'
 
-      - name: "3.4.1.2 | PATCH | Ensure a single firewall configuration utility is in use | package installed"
-        ansible.builtin.package:
-            name: "{{ rockylinux9cis_firewall }}"
-            state: installed
+    # Mask firewalld if nftables is being used
+    - name: "Mask firewalld if nftables is the selected firewall"
+      ansible.builtin.systemd:
+        name: firewalld
+        masked: true
+      when:
+        - "'firewalld' in ansible_facts.packages"
+        - rockylinux9cis_firewall == 'nftables'
 
-      - name: "3.4.1.2 | PATCH | Ensure a single firewall configuration utility is in use | {{ rockylinux9cis_firewall }} started and enabled"
-        ansible.builtin.systemd:
-            name: "{{ rockylinux9cis_firewall }}"
-            enabled: true
-            state: started
+    # Mask nftables if firewalld is the selected firewall
+    - name: "Mask nftables if firewalld is the selected firewall"
+      ansible.builtin.systemd:
+        name: nftables
+        masked: true
+      when:
+        - "'nftables' in ansible_facts.packages"
+        - rockylinux9cis_firewall == 'firewalld'
+
+    # Ensure the selected firewall package is installed
+    - name: "Ensure {{ rockylinux9cis_firewall }} is installed"
+      ansible.builtin.package:
+        name: "{{ rockylinux9cis_firewall }}"
+        state: present
+
+    # Ensure the selected firewall is started and enabled
+    - name: "Ensure {{ rockylinux9cis_firewall }} is started and enabled"
+      ansible.builtin.systemd:
+        name: "{{ rockylinux9cis_firewall }}"
+        enabled: true
+        state: started
 
   when:
-      - rockylinux9cis_rule_3_4_1_2
+    - rockylinux9cis_rule_3_4_1_2
+    - rockylinux9cis_firewall == 'firewalld'
+
+- name: "Unmask firewalld service"
+  ansible.builtin.systemd:
+    name: firewalld
+    masked: no
+  when: rockylinux9cis_firewall == 'firewalld'
+
+- name: "Ensure firewalld is started and enabled"
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+  when: rockylinux9cis_firewall == 'firewalld'
+
   tags:
-      - level1-server
-      - level1-workstation
-      - patch
-      - firewalld
-      - nftables
-      - rule_3.4.1.2
+    - level1-server
+    - level1-workstation
+    - patch
+    - firewalld
+    - nftables
+    - rule_3.4.1.2
+

@@ -14,7 +14,7 @@
       warn_control_id: '1.1.6.1'
       required_mount: '/var/log/audit'
   when:
-      - required_mount not in mount_names
+#      - required_mount not in mount_names
       - rockylinux9cis_rule_1_1_6_1
   tags:
       - level2-server
