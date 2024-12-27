@@ -39,10 +39,12 @@ Before running the playbooks, open the `hosts` file in this repository and confi
 Example:
 
 ```ini
-[all]
+[rockylinux_ec2]
 remote_system_ip ansible_user=your_user
+
+[rockylinux_ec2:vars]
 ansible_user=your_user
-ansible_ssh_private_key_file=/path/to/your-key.pem
+ansible_ssh_private_key_file=/your/pam/key/pem/path/
 ```
 
 ### Running the Playbooks
