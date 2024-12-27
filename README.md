@@ -32,6 +32,19 @@ git clone https://github.com/electromech-cpl/rockylinux-cis-project.git
 cd rockylinux-cis-project
 ```
 
+### Edit the Hosts File
+
+Before running the playbooks, open the `hosts` file in this repository and configure it with the IP address, username, and PEM key of the target system.
+
+Example:
+
+```ini
+[all]
+remote_system_ip ansible_user=your_user
+ansible_user=your_user
+ansible_ssh_private_key_file=/path/to/your-key.pem
+```
+
 ### Running the Playbooks
 
 #### Apply Level 1 Configuration
