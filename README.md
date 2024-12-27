@@ -1,40 +1,77 @@
-Role Name
-=========
+# Rocky Linux CIS Benchmark Project
 
-A brief description of the role goes here.
+This repository provides an Ansible-based implementation for configuring Rocky Linux systems according to the CIS Benchmark guidelines. The configurations are divided into **Level 1** and **Level 2** security profiles, ensuring compliance with industry standards.
 
-Requirements
-------------
+## Features
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- **Level 1**: Basic security measures that balance usability and protection.
+- **Level 2**: Advanced security configurations for environments requiring stricter compliance.
+- **Unified Playbook**: The `site.yml` file combines Level 1 and Level 2 configurations for flexible deployments.
+- Modular structure with roles, tasks, and templates.
 
-Role Variables
---------------
+## Repository Structure
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- **level1.yml**: Playbook for Level 1 CIS Benchmark configuration.
+- **level2.yml**: Playbook for Level 2 CIS Benchmark configuration.
+- **site.yml**: Master playbook to apply both Level 1 and Level 2 configurations.
+- **hosts**: Inventory file for specifying target systems.
+- **tasks**, **templates**, and other directories: Organized structure for Ansible roles.
 
-Dependencies
-------------
+## Getting Started
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+### Prerequisites
 
-Example Playbook
-----------------
+1. Install [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/index.html).
+2. Ensure SSH access to target systems is configured.
+3. Clone this repository.
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+### Clone the Repository
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+```bash
+git clone https://github.com/electromech-cpl/rockylinux-cis-project.git
+cd rockylinux-cis-project
+```
 
-License
--------
+### Running the Playbooks
 
-BSD
+#### Apply Level 1 Configuration
 
-Author Information
-------------------
+```bash
+ansible-playbook -i hosts level1.yml --tags "level1"
+```
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+#### Apply Level 2 Configuration
 
-# rockylinux-cis-project
+```bash
+ansible-playbook -i hosts level2.yml --tags "level2"
+```
+
+#### Apply Both Levels
+
+```bash
+ansible-playbook -i hosts site.yml --tags "level1,level2"
+```
+
+### Testing
+
+The repository includes Molecule testing configurations. To test the configurations, ensure Molecule is installed and run:
+
+```bash
+molecule test
+```
+
+## Contributing
+
+Contributions are welcome! If you find an issue or have suggestions for improvement, please create a pull request or open an issue in this repository.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Author Information
+
+Developed by Disha Rajyaguru and the team at Electromech CPL.
+
+## Support
+
+For any issues, please open an issue in the [GitHub repository](https://github.com/electromech-cpl/rockylinux-cis-project.git).
